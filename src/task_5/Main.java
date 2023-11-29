@@ -8,10 +8,13 @@ public class Main {
         List<Employee> employees = new ArrayList<>();
 
         employees.add(new Employee("Aleks", "Developer", 1500));
+        employees.add(new Employee("John", "Developer", 1500));
+        employees.add(new Employee("Ken", "Developer", 900));
+        employees.add(new Employee("Jeck", "Developer", 1500));
         employees.add(new Employee("Thomas", "Manager", 680.50));
         employees.add(new Employee("Thea", "CEO", 2000));
         employees.add(new Employee("Mary", "Manager", 700));
-        employees.add(new Employee("Ken", "Developer", 900));
+
 
         //        0. Создать класс Employee
 //        1. Вывести всех сотрудников без высшего руководителя
@@ -58,7 +61,7 @@ public class Main {
         System.out.println("Cписок сотрудников из отдела маркетинг и увеличение зп на 15%");
         List<Employee> result6 = employees.stream()
                 .filter(x -> x.getPozition().equals("Manager"))
-                .peek(x -> x.setSalary((x.getSalary() * 0.15) + x.getSalary()))
+                .peek(x -> x.setSalary((x.getSalary() * 1.15)))
                 .collect(Collectors.toList());
         result6.forEach(System.out::println);
 
@@ -69,13 +72,22 @@ public class Main {
                 .min(Comparator.comparingDouble(x -> x.getSalary()))
                 .orElse(null);
         System.out.println(result7);
-        System.out.println("Сотрудники из всех отделов с максимальной зп");
+
+        System.out.println("Сотрудники из всех отделов с максимальной зп Способ 1");
+        employees.stream()
+                .collect(Collectors.groupingBy(x -> x.getPozition()))
+                .forEach((x, y) -> y.stream()
+                        .sorted((a, b) -> Double.compare(b.getSalary(), a.getSalary()))
+                        .limit(1)
+                        .forEach(System.out::println));
+
+        System.out.println("Сотрудники из всех отделов с максимальной зп Способ 2");
         Map<String, List<Employee>> result8 = employees.stream()
                 .collect(Collectors.groupingBy(
                         Employee::getPozition,
                         Collectors.collectingAndThen(
                                 Collectors.maxBy(Comparator.comparingDouble(x -> x.getSalary())),//сравниваем по зарплате, выводим макс.
-                                optional -> optional.map(x->Collections.singletonList(x))// для каждой позиции находим сотрудника
+                                optional -> optional.map(x -> Collections.singletonList(x))// для каждой позиции находим сотрудника
                                         // с максзарплатой, оборачивая его в список
                                         .orElse(null)
                         )
@@ -86,6 +98,27 @@ public class Main {
                 System.out.println("Имя: " + employee.getName() + ", Зарплата: " + employee.getSalary());
             });
         });
+
+        System.out.println("Все сотрудники из всех отделов с максимальной зп");
+        Map<String, List<Employee>> employeesByPosition = employees.stream()
+                .collect(Collectors.groupingBy(Employee::getPozition));
+        for (List<Employee> list : employeesByPosition.values()) {
+            if (list != null && !list.isEmpty()) {
+                list.sort((x, y) -> Double.compare(y.getSalary(), x.getSalary()));
+                double max = list.get(0).getSalary();
+//                list.forEach(x -> {
+//                    if (x.getSalary() == max) {
+//                        System.out.println(x);
+//                    }
+//                });
+                list.stream()
+                        .filter(x -> x.getSalary() == max)
+                        .forEach(System.out::println);
+            }
+
+
+        }
+
 
     }
 
